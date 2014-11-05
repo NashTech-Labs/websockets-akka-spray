@@ -15,7 +15,7 @@ libraryDependencies ++= {
   val akkaV = "2.3.6"
   val sprayV = "1.3.1"
   Seq(
-//  "org.java-websocket"  %   "Java-WebSocket"  % "1.3.1",
+    //"org.java-websocket"  %   "Java-WebSocket"  % "1.3.0",
     "io.spray"            %%  "spray-json"      % sprayV,
     "io.spray"            %%   "spray-can"      % sprayV,
     "io.spray"            %%   "spray-routing"  % sprayV,

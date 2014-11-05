@@ -20,3 +20,11 @@ class HubServices extends Actor with HubRoutes {
   def actorRefFactory: ActorContext = context
   def receive: Receive = runRoute(hubRoutes)
 }
+
+object Configuration {
+  import com.typesafe.config.ConfigFactory
+
+  private val config = ConfigFactory.load
+  config.checkValid(ConfigFactory.defaultReference)
+  val portWs = config.getInt("ports.ws")
+}
