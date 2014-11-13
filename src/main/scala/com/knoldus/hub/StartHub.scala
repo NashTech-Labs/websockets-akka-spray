@@ -6,10 +6,11 @@ import akka.io.IO
 import spray.can.Http
 import akka.actor.ActorContext
 import akka.actor.Actor
+import reactive.socket.BootWebSocketService
 
-object StartHub extends App with ActorHelper {
+object StartHub extends App with ActorHelper with BootWebSocketService {
 
-  implicit val system = hubActorSystem
+  implicit lazy val system = hubActorSystem
   // create and start Email services
   val service = system.actorOf(Props[HubServices], "hubServices")
   // start a new HTTP server on port 8080 with our service actor as the handler

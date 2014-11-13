@@ -19,18 +19,18 @@ object ReactiveServer {
   case class Error(ws : WebSocket, ex : Exception)
   	extends ReactiveServerMessage
 }
-class ReactiveServer(val port : Int)
-    extends WebSocketServer(new InetSocketAddress(port)) {
-  private val reactors = Map[String, ActorRef]()
+class ReactiveServer(val port : Int) extends WebSocketServer(new InetSocketAddress(port)) {
+  private val webSocketConnections = Map[String, ActorRef]()
+  
   final def forResource(descriptor : String, reactor : Option[ActorRef]) {
     reactor match {
-      case Some(actor) => reactors += ((descriptor, actor))
-      case None => reactors -= descriptor
+      case Some(actor) => webSocketConnections += ((descriptor, actor))
+      case None => webSocketConnections -= descriptor
     }
   }
   final override def onMessage(ws : WebSocket, msg : String) {
     if (null != ws) {
-      reactors.get(ws.getResourceDescriptor) match {
+      webSocketConnections.get(ws.getResourceDescriptor) match {
         case Some(actor) => actor ! ReactiveServer.Message(ws, msg)
         case None => ws.close(CloseFrame.REFUSE)
       }
@@ -38,7 +38,7 @@ class ReactiveServer(val port : Int)
   }
   final override def onOpen(ws : WebSocket, hs : ClientHandshake) {
     if (null != ws) {
-      reactors.get(ws.getResourceDescriptor) match {
+      webSocketConnections.get(ws.getResourceDescriptor) match {
         case Some(actor) => actor ! ReactiveServer.Open(ws, hs)
         case None => ws.close(CloseFrame.REFUSE)
       }
@@ -46,7 +46,7 @@ class ReactiveServer(val port : Int)
   }
   final override def onClose(ws : WebSocket, code : Int, reason : String, external : Boolean) {
     if (null != ws) {
-      reactors.get(ws.getResourceDescriptor) match {
+      webSocketConnections.get(ws.getResourceDescriptor) match {
         case Some(actor) => actor ! ReactiveServer.Close(ws, code, reason, external)
         case None => ws.close(CloseFrame.REFUSE)
       }
@@ -54,7 +54,7 @@ class ReactiveServer(val port : Int)
   }
   final override def onError(ws : WebSocket, ex : Exception) {
     if (null != ws) {
-      reactors.get(ws.getResourceDescriptor) match {
+      webSocketConnections.get(ws.getResourceDescriptor) match {
         case Some(actor) => actor ! ReactiveServer.Error(ws, ex)
         case None => ws.close(CloseFrame.REFUSE)
       }
