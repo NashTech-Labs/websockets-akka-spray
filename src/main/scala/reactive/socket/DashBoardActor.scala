@@ -1,6 +1,6 @@
 package reactive.socket
 
-import reactive.socket.ReactiveServer._
+import reactive.socket.AppWebSocketServer._
 import akka.actor.{ Actor, ActorLogging }
 import scala.collection._
 import org.java_websocket.WebSocket
@@ -28,7 +28,7 @@ class DashBoardActor extends Actor {
     case Close(ws, code, reason, ext) => self ! Unregister(ws)
     case Error(ws, ex) => self ! Unregister(ws)
     case Unregister(ws) => {
-      if (null != ws) { // scalastyle:ignore
+      if (null != ws) {
         clients -= ws
       }
     }

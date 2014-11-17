@@ -3,7 +3,7 @@ package com.knoldus.hub
 import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.client.WebSocketClient
 import org.scalatest.FunSuite
-import reactive.socket.ReactiveServer
+import reactive.socket.AppWebSocketServer
 import reactive.socket.BootWebSocketService
 import com.knoldus.util.ActorHelper
 import java.net.URI
@@ -18,8 +18,9 @@ class HubWebSocketsTest extends FunSuite with ActorHelper {
     // Server
     // =======
     val dashboardActor = system.actorOf(Props[DashBoardActor])
-    val budgetWebSocketServer = new ReactiveServer(Configuration.portWs)
+    val budgetWebSocketServer = new AppWebSocketServer(Configuration.portWs)
     budgetWebSocketServer.forResource("/dashboard/ws", Some(dashboardActor))
+    budgetWebSocketServer.forResource("/flashboard/ws", Some(dashboardActor))
     budgetWebSocketServer.start
 
     // ==========
@@ -28,7 +29,7 @@ class HubWebSocketsTest extends FunSuite with ActorHelper {
 
     var websocketMessage = ""
     // This could be your AngularJS or Dart Client making a websocket connection with the server
-    val webSocketDashboard = new WebSocketClient(URI.create(s"ws://localhost:${Configuration.portWs}/dashboard/ws")) {
+    val webSocketDashboard = new WebSocketClient(URI.create(s"ws://localhost:${Configuration.portWs}/flashboard/ws")) {
       override def onMessage(msg: String) {
         websocketMessage = msg
       }
@@ -45,7 +46,7 @@ class HubWebSocketsTest extends FunSuite with ActorHelper {
 
     var websocketMessage2 = ""
     // This could be your AngularJS or Dart Client making a websocket connection with the server
-    val webSocketDashboard2 = new WebSocketClient(URI.create(s"ws://localhost:${Configuration.portWs}/dashboard/ws")) {
+    val webSocketDashboard2 = new WebSocketClient(URI.create(s"ws://localhost:${Configuration.portWs}/flashboard/ws")) {
       override def onMessage(msg: String) {
         websocketMessage2 = msg
       }
@@ -54,6 +55,23 @@ class HubWebSocketsTest extends FunSuite with ActorHelper {
       override def onError(ex: Exception) { println(ex.getMessage) }
     }
     webSocketDashboard2.connect
+    Thread.sleep(1000L) 
+    
+    // ==========
+    // Client Three
+    // ==========
+
+    var websocketMessage3 = ""
+    // This could be your AngularJS or Dart Client making a websocket connection with the server
+    val webSocketDashboard3 = new WebSocketClient(URI.create(s"ws://localhost:${Configuration.portWs}/flashboard/ws")) {
+      override def onMessage(msg: String) {
+        websocketMessage3 = msg
+      }
+      override def onOpen(hs: ServerHandshake) {}
+      override def onClose(code: Int, reason: String, intentional: Boolean) {}
+      override def onError(ex: Exception) { println(ex.getMessage) }
+    }
+    webSocketDashboard3.connect
     Thread.sleep(1000L)
 
     // =======================
@@ -64,6 +82,7 @@ class HubWebSocketsTest extends FunSuite with ActorHelper {
     // Assert that both the clients are getting notified of the changes
     assert(websocketMessage === "Hello")
     assert(websocketMessage2 === "Hello")
+    assert(websocketMessage3 === "Hello")
   }
 }
 
